@@ -1,4 +1,4 @@
-import { Logger } from "../logLib/Logger";
+import { Logger } from "../logLib/Logger"
 
 function logAll() {
     Logger.log`Current log level = ${Logger.level}`
