@@ -6,7 +6,6 @@ export namespace Logger {
         label: string
         target: (message: string) => void
         importance: number
-        trace: boolean
     }
 
     export const LEVELS = {
@@ -15,35 +14,30 @@ export namespace Logger {
             // eslint-disable-next-line no-console
             target: console.log,
             importance: 2,
-            trace: false
         },
         warn: {
             label: addStyle("WARN", inspect.colors.yellowBright!),
             // eslint-disable-next-line no-console
             target: console.warn,
             importance: 3,
-            trace: true
         },
         error: {
             label: addStyle("ERR!", inspect.colors.redBright!),
             // eslint-disable-next-line no-console
             target: console.error,
             importance: 4,
-            trace: true
         },
         conn: {
             label: addStyle("CONN", inspect.colors.green!),
             // eslint-disable-next-line no-console
             target: console.log,
             importance: 1,
-            trace: false
         },
         debug: {
             label: addStyle("@DEB", inspect.colors.magentaBright!),
             // eslint-disable-next-line no-console
             target: console.log,
             importance: 0,
-            trace: true
         }
     }
 
@@ -75,7 +69,7 @@ export namespace Logger {
 
             const formatted = formatLogTemplate(...args)
 
-            const output = formatted ? `[${levelToUse.label}] ${formatted} ${levelToUse.trace ? addStyle(addStyle(trace(), inspect.colors.grey!), inspect.colors.dim!) : ""}` : ""
+            const output = formatted ? `[${levelToUse.label}] ${formatted}` : ""
 
             levelToUse.target(output)
         }
