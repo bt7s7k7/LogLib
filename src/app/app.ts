@@ -1,9 +1,11 @@
 import { inspect } from "util"
-import { ObjectDescription } from "../logger/ObjectDescription"
+import { DIContext } from "../dependencyInjection/DIContext"
+import { Logger } from "../logger/Logger"
 
-const p = {}
-const q = { a: p, b: p }
+const context = new DIContext()
 
-const result = ObjectDescription.inspectObject(process)
+const logger = context.provide(Logger, "default")
 
-console.log(inspect(result, { colors: true, depth: Infinity }))
+logger.sendMessage = v => console.log(inspect(v, { colors: true, depth: Infinity }))
+
+logger.info`Hello ${logger}`

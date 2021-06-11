@@ -1,3 +1,4 @@
+import { LogColor } from "./LogLevel"
 
 const primitiveTypes = new Set(["string", "number", "boolean"])
 
@@ -168,5 +169,11 @@ export namespace ObjectDescription {
         path: string[]
     }
 
-    export type AnyDescription = PrimitiveDescription | NullDescription | UndefinedDescription | SymbolDescription | DateDescription | FunctionDescription | ListDescription | RecordDescription | UnknownDescription | BigintDescription | ShallowDescription | CircularDescription
+    export interface RawTextDescription extends DescriptionBase {
+        type: "raw",
+        text: string,
+        color: LogColor
+    }
+
+    export type AnyDescription = PrimitiveDescription | NullDescription | UndefinedDescription | SymbolDescription | DateDescription | FunctionDescription | ListDescription | RecordDescription | UnknownDescription | BigintDescription | ShallowDescription | CircularDescription | RawTextDescription
 }
