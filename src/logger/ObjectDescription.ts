@@ -63,15 +63,17 @@ export namespace ObjectDescription {
                 }
             }
 
+            const asKeyValuePairList = ([key, value]: any[], i: number) => ({
+                key: inspectObject(key, ctx.descent(["items", i.toString(), "key"])),
+                value: inspectObject(value, ctx.descent(["items", i.toString(), "value"]))
+            })
+
             if (target instanceof Map) {
                 return {
                     type: "record",
                     subtype: "map",
                     name: target.constructor.name,
-                    items: [...target].map(([key, value], i) => ({
-                        key: inspectObject(key, ctx.descent(["items", i.toString(), "key"])),
-                        value: inspectObject(value, ctx.descent(["items", i.toString(), "value"]))
-                    }))
+                    items: [...target].map(asKeyValuePairList)
                 }
             }
 
@@ -88,10 +90,10 @@ export namespace ObjectDescription {
                 type: "record",
                 subtype: "object",
                 name,
-                items: Object.entries(target).map(([key, value], i) => ({
-                    key: inspectObject(key, ctx.descent(["items", i.toString(), "key"])),
-                    value: inspectObject(value, ctx.descent(["items", i.toString(), "value"]))
-                }))
+                items: [
+                    ...Object.entries(target).map(asKeyValuePairList),
+                    ...Object.getOwnPropertySymbols(target).map(v => [v, target[v]]).map(asKeyValuePairList)
+                ]
             }
         }
 
