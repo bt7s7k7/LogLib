@@ -29,10 +29,16 @@ export namespace ObjectDescription {
             }
         } else if (typeof target == "function") {
             const isClass = target.toString().startsWith("class")
+            let name = target.name || "(anon)"
+
+            if (name == "(anon)" && target.toString().length < 50) {
+                name = target.toString()
+            }
+
             return {
                 type: "function",
                 subtype: isClass ? "class" : "function",
-                name: target.name || "(anon)"
+                name: name
             }
         } else if (typeof target == "symbol") {
             return {
@@ -74,6 +80,20 @@ export namespace ObjectDescription {
                     subtype: "map",
                     name: target.constructor.name,
                     items: [...target].map(asKeyValuePairList)
+                }
+            }
+
+            if (target instanceof RegExp) {
+                return {
+                    type: "regexp",
+                    source: target.toString()
+                }
+            }
+
+            if (target instanceof Date) {
+                return {
+                    type: "date",
+                    date: target.toISOString()
                 }
             }
 
@@ -177,5 +197,5 @@ export namespace ObjectDescription {
         color: LogColor
     }
 
-    export type AnyDescription = PrimitiveDescription | NullDescription | UndefinedDescription | SymbolDescription | DateDescription | FunctionDescription | ListDescription | RecordDescription | UnknownDescription | BigintDescription | ShallowDescription | CircularDescription | RawTextDescription
+    export type AnyDescription = PrimitiveDescription | NullDescription | UndefinedDescription | SymbolDescription | DateDescription | FunctionDescription | ListDescription | RecordDescription | UnknownDescription | BigintDescription | ShallowDescription | CircularDescription | RawTextDescription | RegExpDescription
 }

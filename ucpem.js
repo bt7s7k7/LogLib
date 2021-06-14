@@ -5,6 +5,10 @@ const { project, github } = require("ucpem")
 const src = project.prefix("src")
 
 src.res("logLib")
-src.res("logger",
+const logger = src.res("logger",
     github("bt7s7k7/DependencyInjection").res("dependencyInjection")
+)
+
+src.res("nodeLogger",
+    logger
 )
