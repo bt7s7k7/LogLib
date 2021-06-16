@@ -49,7 +49,7 @@ const descViews: {
     list: (props) => () => {
         const length = props.desc.elements.length
         const prefix = props.desc.name == "Array" ? "" : `${props.desc.name} (${length}) `
-        return <Fold inline negative>{{
+        return <Fold negative>{{
             hidden: () => {
                 let canInline = true
                 for (const element of props.desc.elements) {
@@ -83,7 +83,7 @@ const descViews: {
         const length = props.desc.items.length
         const notEmpty = length > 0
         const prefix = props.desc.name == "Object" || !props.desc.name ? "" : `${props.desc.name + (!notEmpty ? ` {} ` : "")} `
-        return <Fold inline negative>{{
+        return <Fold negative>{{
             hidden: () => {
                 let canInline = true
                 for (const { key, value } of props.desc.items) {
@@ -188,7 +188,7 @@ export const VueLoggerView = eventDecorator(defineComponent({
         const store = context.inject(VueLoggerStore)
 
         return () => (
-            <div class="bg-black p-2">
+            <div class="bg-dark p-2">
                 {store.value.messages.map((message, i) => (
                     <pre class="m-0" key={i}>
                         <span>[<span class={colorLookup[LogLevel[message.level].color]}>{LogLevel[message.level].label}</span>]</span>
