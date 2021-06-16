@@ -6,7 +6,7 @@ export class MessageBridgeLogger extends Logger {
     public readonly messageBridge = this.context.inject(MessageBridge)
 
     public sendMessage(message: LogMessage) {
-        this.messageBridge.sendRequest("logger:log", message)
+        this.messageBridge.sendRequest("logger:log", { ...message, content: message.content.map(v => typeof v == "string" ? v : { ...v, target: null }) })
     }
 }
 
