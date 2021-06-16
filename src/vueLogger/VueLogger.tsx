@@ -48,6 +48,7 @@ const descViews: {
     },
     list: (props) => () => {
         const length = props.desc.elements.length
+        const prefix = props.desc.name == "Array" ? "" : `${props.desc.name} (${length}) `
         return <Fold inline negative>{{
             hidden: () => {
                 let canInline = true
@@ -58,25 +59,30 @@ const descViews: {
                     }
                 }
 
-                if (canInline) {
-                    return <span>{props.desc.name == "Array" ? "" : `${props.desc.name} (${length}) `}[{props.desc.elements.slice(0, 10).map((element, i) => (
+                if (canInline && length > 0) {
+                    return <span>{prefix}[ {props.desc.elements.slice(0, 10).map((element, i) => (
                         <span key={i}><DescView desc={element} root={props.root} />{length > i + 1 && ", "}</span>
-                    ))}]</span>
+                    ))} ]</span>
                 }
-                else return <span>{props.desc.name} ({length})</span>
+                else return <span>{prefix || "[]"}</span>
             },
-            default: () => (<span>
-                <span>[</span>
-                <div class="ml-8">length: <span class={colorLookup.yellow}>{length}</span>{length > 1 && ","}</div>
-                {props.desc.elements.map((element, i) => (
-                    <div class="ml-8" key={i}>{i}: <DescView desc={element} root={props.root} />{length > i + 1 && ","}</div>
-                ))}
-                <span>]</span>
-            </span>),
+            default: () => length > 0 ? (
+                <span>
+                    <span>{prefix}</span>
+                    <span>[</span>
+                    <div class="ml-8">length: <span class={colorLookup.yellow}>{length}</span>{length > 1 && ","}</div>
+                    {props.desc.elements.map((element, i) => (
+                        <div class="ml-8" key={i}>{i}: <DescView desc={element} root={props.root} />{length > i + 1 && ","}</div>
+                    ))}
+                    <span>]</span>
+                </span>
+            ) : <span>{prefix || "[]"}</span>,
         }}</Fold>
     },
     record: (props) => () => {
         const length = props.desc.items.length
+        const notEmpty = length > 0
+        const prefix = props.desc.name == "Object" || !props.desc.name ? "" : `${props.desc.name + (!notEmpty ? ` {} ` : "")} `
         return <Fold inline negative>{{
             hidden: () => {
                 let canInline = true
@@ -87,20 +93,29 @@ const descViews: {
                     }
                 }
 
-                if (canInline) {
-                    return <span>{props.desc.name == "Object" || !props.desc.name ? "" : `${props.desc.name} `}{"{"}{props.desc.items.slice(0, 10).map(({ key, value }, i) => (
-                        <span key={i}><DescView desc={key} root={props.root} />:<DescView desc={value} root={props.root} />{length > i + 1 && ", "}</span>
-                    ))}{"}"}</span>
+                if (notEmpty && canInline) {
+                    return <span>{prefix}{"{ "}{props.desc.items.slice(0, 10).map(({ key, value }, i) => (
+                        <span key={i}>{
+                            key.type == "primitive" && typeof key.value == "string" && !key.value.match(/[^\w$]/g) ? key.value
+                                : <DescView desc={key} root={props.root} />
+                        }: <DescView desc={value} root={props.root} />{length > i + 1 && ", "}</span>
+                    ))}{" }"}</span>
                 }
-                else return <span>{props.desc.name}</span>
+                else return <span>{prefix.trim() + (notEmpty ? " {...}" : "") || (notEmpty ? "{...}" : "{}")}</span>
             },
-            default: () => (<span>
-                <span>{"{"}</span>
-                {props.desc.items.map(({ key, value }, i) => (
-                    <div class="ml-8" key={i}><DescView desc={key} root={props.root} />: <DescView desc={value} root={props.root} />{length > i + 1 && ","}</div>
-                ))}
-                <span>{"}"}</span>
-            </span>),
+            default: () => notEmpty ? (
+                <span>
+                    <span>{prefix}</span>
+                    <span>{"{"}</span>
+                    {props.desc.items.map(({ key, value }, i) => (
+                        <div class="ml-8" key={i}>{
+                            key.type == "primitive" && typeof key.value == "string" && !key.value.match(/[^\w$]/g) ? key.value
+                                : <DescView desc={key} root={props.root} />
+                        }: <DescView desc={value} root={props.root} />{length > i + 1 && ","}</div>
+                    ))}
+                    <span>{"}"}</span>
+                </span>
+            ) : <span>{prefix.trim() || "{}"}</span>,
         }}</Fold>
     }
 }
