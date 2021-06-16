@@ -163,8 +163,8 @@ const colorLookup: Record<LogColor, string> = {
     cyan: css({ color: "cyan" }),
     gray: css({ color: "gray" }),
     green: css({ color: "lightgreen" }),
-    magenta: css({ color: "magenta" }),
-    red: css({ color: "red" }),
+    magenta: css({ color: "#ff99ee" }),
+    red: css({ color: "#ff5555" }),
     white: css({ color: "white" }),
     yellow: css({ color: "yellow" })
 }
