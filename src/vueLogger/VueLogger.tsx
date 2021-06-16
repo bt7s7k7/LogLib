@@ -31,89 +31,77 @@ const descViews: {
         root: ObjectDescription.AnyDescription
     }) => any
 } = {
-    primitive: (props) => {
-        return () => {
-            const value = props.desc.value
-            if (typeof value == "string") return <span class={colorLookup.green}>{JSON.stringify(value)}</span>
-            else return <span class={colorLookup.yellow}>{JSON.stringify(value)}</span>
-        }
+    primitive: (props) => () => {
+        const value = props.desc.value
+        if (typeof value == "string") return <span class={colorLookup.green}>{JSON.stringify(value)}</span>
+        else return <span class={colorLookup.yellow}>{JSON.stringify(value)}</span>
     },
-    bigint: (props) => {
-        return () => {
-            const value = props.desc.value
-            return <span class={colorLookup.yellow}>{value.toString()}n</span>
-        }
+    bigint: (props) => () => {
+        const value = props.desc.value
+        return <span class={colorLookup.yellow}>{value.toString()}n</span>
     },
-    function: (props) => {
-        return () => {
-            return <span class={colorLookup.cyan}>[{props.desc.subtype} {props.desc.name}]</span>
-        }
+    function: (props) => () => {
+        return <span class={colorLookup.cyan}>[{props.desc.subtype} {props.desc.name}]</span>
     },
-    shallow: (props) => {
-        return () => {
-            return <span class={colorLookup.blue}>{props.desc.name}</span>
-        }
+    shallow: (props) => () => {
+        return <span class={colorLookup.blue}>{props.desc.name}</span>
     },
-    list: (props) => {
-        return () => {
-            const length = props.desc.elements.length
-            return <Fold inline negative>{{
-                hidden: () => {
-                    let canInline = true
-                    for (const element of props.desc.elements) {
-                        if (!INLINE_TYPES.has(element.type)) {
-                            canInline = false
-                            break
-                        }
+    list: (props) => () => {
+        const length = props.desc.elements.length
+        return <Fold inline negative>{{
+            hidden: () => {
+                let canInline = true
+                for (const element of props.desc.elements) {
+                    if (!INLINE_TYPES.has(element.type)) {
+                        canInline = false
+                        break
                     }
+                }
 
-                    if (canInline) {
-                        return <span>{props.desc.name == "Array" ? "" : `${props.desc.name} (${length}) `}[{props.desc.elements.slice(0, 10).map((element, i) => (
-                            <span key={i}><DescView desc={element} root={props.root} />{length > i + 1 && ", "}</span>
-                        ))}]</span>
-                    }
-                    else return <span>{props.desc.name} ({length})</span>
-                },
-                default: () => (<span>
-                    <span>[</span>
-                    <div class="ml-8">length: <span class={colorLookup.yellow}>{length}</span>{length > 1 && ","}</div>
-                    {props.desc.elements.map((element, i) => (
-                        <div class="ml-8" key={i}>{i}: <DescView desc={element} root={props.root} />{length > i + 1 && ","}</div>
-                    ))}
-                    <span>]</span>
-                </span>),
-            }}</Fold>
-        }
+                if (canInline) {
+                    return <span>{props.desc.name == "Array" ? "" : `${props.desc.name} (${length}) `}[{props.desc.elements.slice(0, 10).map((element, i) => (
+                        <span key={i}><DescView desc={element} root={props.root} />{length > i + 1 && ", "}</span>
+                    ))}]</span>
+                }
+                else return <span>{props.desc.name} ({length})</span>
+            },
+            default: () => (<span>
+                <span>[</span>
+                <div class="ml-8">length: <span class={colorLookup.yellow}>{length}</span>{length > 1 && ","}</div>
+                {props.desc.elements.map((element, i) => (
+                    <div class="ml-8" key={i}>{i}: <DescView desc={element} root={props.root} />{length > i + 1 && ","}</div>
+                ))}
+                <span>]</span>
+            </span>),
+        }}</Fold>
     },
-    record: (props) => {
-        return () => {
-            const length = props.desc.items.length
-            return <Fold inline negative>{{
-                hidden: () => {
-                    let canInline = true
-                    for (const { key, value } of props.desc.items) {
-                        if (!INLINE_TYPES.has(key.type) || !INLINE_TYPES.has(value.type)) {
-                            canInline = false
-                            break
-                        }
+    record: (props) => () => {
+        const length = props.desc.items.length
+        return <Fold inline negative>{{
+            hidden: () => {
+                let canInline = true
+                for (const { key, value } of props.desc.items) {
+                    if (!INLINE_TYPES.has(key.type) || !INLINE_TYPES.has(value.type)) {
+                        canInline = false
+                        break
                     }
+                }
 
-                    if (canInline) {
-                        return <span>{props.desc.name == "Object" || !props.desc.name ? "" : `${props.desc.name} `}{"{"}{props.desc.items.slice(0, 10).map(({ key, value }, i) => (
-                            <span key={i}><DescView desc={key} root={props.root} />:<DescView desc={value} root={props.root} />{length > i + 1 && ", "}</span>
-                        ))}{"}"}</span>
-                    }
-                    else return <span>{props.desc.name}</span>
-                },
-                default: () => (<span>
-                    <span>{"{"}</span>
-                    {props.desc.items.map(({ key, value }, i) => (
-                        <div class="ml-8" key={i}><DescView desc={key} root={props.root} />: <DescView desc={value} root={props.root} />{length > i + 1 && ","}</div>
-                    ))}
-                    <span>{"}"}</span>
-                </span>),
-            }}</Fold>
-        }
+                if (canInline) {
+                    return <span>{props.desc.name == "Object" || !props.desc.name ? "" : `${props.desc.name} `}{"{"}{props.desc.items.slice(0, 10).map(({ key, value }, i) => (
+                        <span key={i}><DescView desc={key} root={props.root} />:<DescView desc={value} root={props.root} />{length > i + 1 && ", "}</span>
+                    ))}{"}"}</span>
+                }
+                else return <span>{props.desc.name}</span>
+            },
+            default: () => (<span>
+                <span>{"{"}</span>
+                {props.desc.items.map(({ key, value }, i) => (
+                    <div class="ml-8" key={i}><DescView desc={key} root={props.root} />: <DescView desc={value} root={props.root} />{length > i + 1 && ","}</div>
+                ))}
+                <span>{"}"}</span>
+            </span>),
+        }}</Fold>
     }
 }
 
