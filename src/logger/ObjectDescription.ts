@@ -32,7 +32,7 @@ export namespace ObjectDescription {
             let name = target.name || "(anon)"
 
             if (name == "(anon)" && target.toString().length < 50) {
-                name = target.toString()
+                name = target.toString().replace(/\n\s*/g, "↲")
             }
 
             return {
