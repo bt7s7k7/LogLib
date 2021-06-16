@@ -117,7 +117,18 @@ const descViews: {
                 </span>
             ) : <span>{prefix.trim() || "{}"}</span>,
         }}</Fold>
-    }
+    },
+    circular: (props) => () => {
+        let target = props.root
+        for (const key of props.desc.path) {
+            target = (target as any)[key]
+        }
+
+        return <span><span class={colorLookup.blue}>[C] </span><DescView desc={target} root={props.root} /></span>
+    },
+    symbol: (props) => () => <span class={colorLookup.green}>{props.desc.name}</span>,
+    date: (props) => () => <span class={colorLookup.magenta}>{props.desc.date}</span>,
+    regexp: (props) => () => <span class={colorLookup.red}>{props.desc.source}</span>
 }
 
 const descViewComponents = Object.fromEntries(Object.entries(descViews).map(([key, value]) => [key, defineComponent({
