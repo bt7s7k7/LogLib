@@ -186,8 +186,8 @@ export const VueLoggerView = eventDecorator(defineComponent({
                         {" "}
                         <span>
                             {message.content.map((item, i) => (
-                                typeof item == "string" ? <span key={i}>{item}</span>
-                                    : <DescView root={item.desc} key={i} desc={item.desc} />
+                                typeof item == "string" ? <span class="inline-block" key={i}>{item}</span>
+                                    : <DescView class="inline-block" root={item.desc} key={i} desc={item.desc} />
                             ))}
                         </span>
                     </pre>
