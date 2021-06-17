@@ -1,5 +1,5 @@
 import { css } from "@emotion/css"
-import { computed, defineComponent, PropType, shallowReactive } from "vue"
+import { computed, defineComponent, onMounted, PropType, ref, shallowReactive } from "vue"
 import { useContext } from "../dependencyInjectionVue/hooks"
 import { eventDecorator } from "../eventDecorator"
 import { Logger, LogMessage } from "../logger/Logger"
@@ -25,6 +25,9 @@ const INLINE_TYPES = new Set<ObjectDescription.AnyDescription["type"]>([
     "bigint", "date", "function", "null", "primitive", "regexp", "symbol", "shallow", "undefined", "unknown"
 ])
 
+const DEFAULT_INLINE_LIMIT = 10
+const INLINE_WIDTH_LIMIT = 700
+
 const descViews: {
     [P in ObjectDescription.AnyDescription["type"]]?: (props: {
         desc: GetDescriptionByType<ObjectDescription.AnyDescription, P>,
@@ -46,77 +49,130 @@ const descViews: {
     shallow: (props) => () => {
         return <span class={colorLookup.blue}>{props.desc.name}</span>
     },
-    list: (props) => () => {
-        const length = props.desc.elements.length
-        const prefix = props.desc.name == "Array" ? "" : `${props.desc.name} (${length}) `
-        return <Fold negative>{{
-            hidden: () => {
-                let canInline = true
-                for (const element of props.desc.elements) {
-                    if (!INLINE_TYPES.has(element.type)) {
-                        canInline = false
-                        break
+    list: (props) => {
+        const limit = ref(DEFAULT_INLINE_LIMIT)
+        const inlineSpan = ref<HTMLSpanElement>()
+
+        onMounted(() => {
+            if (inlineSpan.value) {
+                const iter = () => {
+
+                    if (limit.value == 0) return
+
+                    const width = inlineSpan.value!.getBoundingClientRect().width
+
+                    if (width > INLINE_WIDTH_LIMIT) {
+
+                        limit.value--
+                        setTimeout(() => {
+                            iter()
+                        }, 10)
                     }
                 }
 
-                if (canInline && length > 0) {
-                    return <span>{prefix}[ {props.desc.elements.slice(0, 10).map((element, i) => (
-                        <span key={i}><DescView desc={element} root={props.root} />{length > i + 1 && ", "}</span>
-                    ))} ]</span>
-                }
-                else return <span>{prefix || "[]"}</span>
-            },
-            default: () => length > 0 ? (
-                <span>
-                    <span>{prefix}</span>
-                    <span>[</span>
-                    <div class="ml-8">length: <span class={colorLookup.yellow}>{length}</span>{length > 1 && ","}</div>
-                    {props.desc.elements.map((element, i) => (
-                        <div class="ml-8" key={i}>{i}: <DescView desc={element} root={props.root} />{length > i + 1 && ","}</div>
-                    ))}
-                    <span>]</span>
-                </span>
-            ) : <span>{prefix || "[]"}</span>,
-        }}</Fold>
+                iter()
+            }
+        })
+
+        return () => {
+            const length = props.desc.elements.length
+            const prefix = props.desc.name == "Array" ? "" : `${props.desc.name} (${length}) `
+            return <Fold negative>{{
+                hidden: () => {
+                    let canInline = true
+                    for (const element of props.desc.elements) {
+                        if (!INLINE_TYPES.has(element.type)) {
+                            canInline = false
+                            break
+                        }
+                    }
+
+                    if (canInline && length > 0) {
+                        return <span ref={inlineSpan}>{prefix}[ {props.desc.elements.slice(0, limit.value).map((element, i) => (
+                            <span key={i}><DescView desc={element} root={props.root} />{length > i + 1 && (", " + (i == limit.value - 1 ? "..." : ""))}</span>
+                        ))} ]</span>
+                    }
+                    else return <span>{prefix || "[]"}</span>
+                },
+                default: () => length > 0 ? (
+                    <span>
+                        <span>{prefix}</span>
+                        <span>[</span>
+                        <div class="ml-8">length: <span class={colorLookup.yellow}>{length}</span>{length > 1 && ","}</div>
+                        {props.desc.elements.map((element, i) => (
+                            <div class="ml-8" key={i}>{i}: <DescView desc={element} root={props.root} />{length > i + 1 && ","}</div>
+                        ))}
+                        <span>]</span>
+                    </span>
+                ) : <span>{prefix || "[]"}</span>,
+            }}</Fold>
+        }
     },
-    record: (props) => () => {
-        const length = props.desc.items.length
-        const notEmpty = length > 0
-        const prefix = props.desc.name == "Object" || !props.desc.name ? "" : `${props.desc.name + (!notEmpty ? ` {} ` : "")} `
-        return <Fold negative>{{
-            hidden: () => {
-                let canInline = true
-                for (const { key, value } of props.desc.items) {
-                    if (!INLINE_TYPES.has(key.type) || !INLINE_TYPES.has(value.type)) {
-                        canInline = false
-                        break
+    record: (props) => {
+        const limit = ref(DEFAULT_INLINE_LIMIT)
+        const inlineSpan = ref<HTMLSpanElement>()
+
+        onMounted(() => {
+            if (inlineSpan.value) {
+                const iter = () => {
+
+                    if (limit.value == 0) return
+
+                    const width = inlineSpan.value!.getBoundingClientRect().width
+
+                    if (width > INLINE_WIDTH_LIMIT) {
+
+                        limit.value--
+                        setTimeout(() => {
+                            iter()
+                        }, 10)
                     }
                 }
 
-                if (notEmpty && canInline) {
-                    return <span>{prefix}{"{ "}{props.desc.items.slice(0, 10).map(({ key, value }, i) => (
-                        <span key={i}>{
-                            key.type == "primitive" && typeof key.value == "string" && !key.value.match(/[^\w$]/g) ? key.value
-                                : <DescView desc={key} root={props.root} />
-                        }: <DescView desc={value} root={props.root} />{length > i + 1 && ", "}</span>
-                    ))}{" }"}</span>
-                }
-                else return <span>{prefix.trim() + (notEmpty ? " {...}" : "") || (notEmpty ? "{...}" : "{}")}</span>
-            },
-            default: () => notEmpty ? (
-                <span>
-                    <span>{prefix}</span>
-                    <span>{"{"}</span>
-                    {props.desc.items.map(({ key, value }, i) => (
-                        <div class="ml-8" key={i}>{
-                            key.type == "primitive" && typeof key.value == "string" && !key.value.match(/[^\w$]/g) ? key.value
-                                : <DescView desc={key} root={props.root} />
-                        }: <DescView desc={value} root={props.root} />{length > i + 1 && ","}</div>
-                    ))}
-                    <span>{"}"}</span>
-                </span>
-            ) : <span>{prefix.trim() || "{}"}</span>,
-        }}</Fold>
+                iter()
+            }
+        })
+
+        return () => {
+            const length = props.desc.items.length
+            const notEmpty = length > 0
+            const prefix = props.desc.name == "Object" || !props.desc.name ? "" : `${props.desc.name + (!notEmpty ? ` {} ` : "")} `
+
+            return <Fold negative>{{
+                hidden: () => {
+                    let canInline = true
+                    for (const { key, value } of props.desc.items) {
+                        if (!INLINE_TYPES.has(key.type) || !INLINE_TYPES.has(value.type)) {
+                            canInline = false
+                            break
+                        }
+                    }
+
+                    if (notEmpty && canInline) {
+                        return <span ref={inlineSpan}>{prefix}{"{ "}{props.desc.items.slice(0, limit.value).map(({ key, value }, i) => (
+                            <span key={i}>{
+                                key.type == "primitive" && typeof key.value == "string" && !key.value.match(/[^\w$]/g) ? key.value
+                                    : <DescView desc={key} root={props.root} />
+                            }: <DescView desc={value} root={props.root} />{length > i + 1 && (", " + (i == limit.value - 1 ? "..." : ""))}</span>
+                        ))}{" }"}</span>
+                    }
+                    else return <span>{prefix.trim() + (notEmpty ? " {...}" : "") || (notEmpty ? "{...}" : "{}")}</span>
+                },
+                default: () => notEmpty ? (
+                    <span>
+                        <span>{prefix}</span>
+                        <span>{"{"}</span>
+                        {props.desc.items.map(({ key, value }, i) => (
+                            <div class="ml-8" key={i}>{
+                                key.type == "primitive" && typeof key.value == "string" && !key.value.match(/[^\w$]/g) ? key.value
+                                    : <DescView desc={key} root={props.root} />
+                            }: <DescView desc={value} root={props.root} />{length > i + 1 && ","}</div>
+                        ))}
+                        <span>{"}"}</span>
+                    </span>
+                ) : <span>{prefix.trim() || "{}"}</span>,
+            }}</Fold>
+        }
     },
     circular: (props) => () => {
         let target = props.root
