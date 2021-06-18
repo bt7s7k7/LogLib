@@ -119,7 +119,15 @@ const descViews: {
 } = {
     primitive: (props) => () => {
         const value = props.desc.value
-        if (typeof value == "string") return <span class={colorLookup.green}>{JSON.stringify(value)}</span>
+        if (typeof value == "string") {
+            if (value.length < 100) return <span class={colorLookup.green}>{JSON.stringify(value)}</span>
+            else {
+                return <Fold negative>{{
+                    hidden: () => <span class={colorLookup.green}>{JSON.stringify(value.slice(0, 100)).slice(0, -1)}...</span>,
+                    default: () => <span class={colorLookup.green}><div class="inline-block">{value}</div></span>
+                }}</Fold>
+            }
+        }
         else return <span class={colorLookup.yellow}>{JSON.stringify(value)}</span>
     },
     bigint: (props) => () => {
