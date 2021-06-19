@@ -146,9 +146,21 @@ export class NodeLogger extends Logger {
 
         const output = process[level.role == "log" ? "stdout" : "stderr"]
 
+        for (const { color, label } of message.origin) {
+            output.write("[")
+            output.write(ConsoleColorUtils.addStyle(label, color))
+            output.write("] ")
+        }
+
         output.write("[")
         output.write(ConsoleColorUtils.addStyle(level.label, level.color))
         output.write("] ")
+
+        for (const { color, label } of message.prefix) {
+            output.write("[")
+            output.write(ConsoleColorUtils.addStyle(label, color))
+            output.write("] ")
+        }
 
         for (const value of message.content) {
             if (typeof value == "string") {

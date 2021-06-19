@@ -256,6 +256,11 @@ export const VueLoggerView = eventDecorator(defineComponent({
             <div class="bg-dark p-2">
                 {store.value.messages.map((message, i) => (
                     <pre class="m-0" key={i}>
+                        <span>
+                            {message.origin.map((origin, i) => (
+                                <span key={i}>[<span class={colorLookup[origin.color]}>{origin.label}</span>]</span>
+                            ))}
+                        </span>
                         <span>[<span class={colorLookup[LogLevel[message.level].color]}>{LogLevel[message.level].label}</span>]</span>
                         <span>
                             {message.prefix.map((prefix, i) => (

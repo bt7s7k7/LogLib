@@ -1,6 +1,6 @@
 import { MessageBridge } from "../dependencyInjection/commonServices/MessageBridge"
 import { DIService } from "../dependencyInjection/DIService"
-import { Logger, LogMessage } from "./Logger"
+import { Logger, LogMessage, LogPrefix } from "./Logger"
 
 export class MessageBridgeLogger extends Logger {
     public readonly messageBridge = this.context.inject(MessageBridge)
@@ -14,12 +14,16 @@ export class LoggerReceiver extends DIService {
     public readonly messageBridge = this.context.inject(MessageBridge)
     public readonly logger = this.context.inject(Logger)
 
-    constructor() {
+    public handleMessage(message: LogMessage) {
+        this.logger.sendMessage({ ...message, origin: [...message.origin, ...this.origin] })
+    }
+
+    constructor(
+        public readonly origin: LogPrefix[] = []
+    ) {
         super()
         this.messageBridge.onRequest.add(this, request => {
-            if (request.type == "logger:log") request.handle(async (message: LogMessage) => {
-                this.logger.sendMessage(message)
-            })
+            if (request.type == "logger:log") request.handle(async (message: LogMessage) => this.handleMessage(message))
         })
     }
 }

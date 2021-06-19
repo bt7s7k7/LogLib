@@ -8,6 +8,7 @@ export interface LogPrefix {
 }
 
 export interface LogMessage {
+    origin: LogPrefix[]
     level: LogLevelName
     prefix: LogPrefix[]
     content: (ObjectDescription | string)[]
@@ -28,7 +29,7 @@ function makeLogFunction(level: LogLevelName, target: LogFunctionTarget) {
             }
         }
 
-        target.sendMessage({ level, content, prefix: target.getPrefix() })
+        target.sendMessage({ level, content, prefix: target.getPrefix(), origin: [] })
     }
 }
 
