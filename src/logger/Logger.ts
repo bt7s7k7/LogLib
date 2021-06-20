@@ -58,7 +58,8 @@ export class Logger extends DIService.define<LogFunctionTarget & {
 
 class ChildLogger extends Logger {
     public sendMessage(message: LogMessage) {
-        this.parent.sendMessage({ ...message, prefix: [...this.parent.getPrefix(), this.customPrefix] })
+        if (message.origin.length > 0) this.parent.sendMessage(message)
+        else this.parent.sendMessage({ ...message, prefix: [...this.parent.getPrefix(), this.customPrefix] })
     }
 
     constructor(
