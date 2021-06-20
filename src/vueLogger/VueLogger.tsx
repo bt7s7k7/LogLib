@@ -5,15 +5,24 @@ import { eventDecorator } from "../eventDecorator"
 import { Logger, LogMessage } from "../logger/Logger"
 import { LogColor, LogLevel } from "../logger/LogLevel"
 import { ObjectDescription } from "../logger/ObjectDescription"
+import { Button } from "../vue3gui/Button"
 import { Fold } from "../vue3gui/Fold"
 
 class VueLoggerStore {
     public messages: LogMessage[] = shallowReactive([])
+
+    public clear() {
+        this.messages.length = 0
+    }
 }
 
 export class VueLogger extends Logger {
     public sendMessage(message: LogMessage) {
         this.store.messages.push(message)
+    }
+
+    public clear() {
+        this.store.clear()
     }
 
     protected readonly store = this.context.provide(VueLoggerStore, "default")
@@ -276,6 +285,9 @@ export const VueLoggerView = eventDecorator(defineComponent({
                         </span>
                     </pre>
                 ))}
+                <div class="absolute top-0 right-0 p-2">
+                    <Button textual flat onClick={() => store.value.clear()}>Clear</Button>
+                </div>
             </div>
         )
     }
