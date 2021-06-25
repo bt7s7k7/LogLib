@@ -44,7 +44,7 @@ export class Logger extends DIService.define<LogFunctionTarget & {
     }
 
     public prefix(prefix: LogPrefix) {
-        return new ChildLogger(this, prefix)
+        return this.context.instantiate(() => new ChildLogger(this, prefix))
     }
 
     constructor() {
