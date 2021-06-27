@@ -15,7 +15,6 @@ export interface LogMessage {
 }
 
 interface LogFunctionTarget {
-    getPrefix(): LogPrefix[]
     sendMessage(message: LogMessage): void
 }
 
@@ -29,7 +28,7 @@ function makeLogFunction(level: LogLevelName, target: LogFunctionTarget) {
             }
         }
 
-        target.sendMessage({ level, content, prefix: target.getPrefix(), origin: [] })
+        target.sendMessage({ level, content, prefix: [], origin: [] })
     }
 }
 
@@ -38,11 +37,6 @@ type LogFunction = ReturnType<typeof makeLogFunction>
 export class Logger extends DIService.define<LogFunctionTarget & {
     [P in LogLevelName]: LogFunction
 }>() {
-
-    public getPrefix() {
-        return [] as LogPrefix[]
-    }
-
     public prefix(prefix: LogPrefix) {
         return this.context.instantiate(() => new ChildLogger(this, prefix))
     }
@@ -54,12 +48,13 @@ export class Logger extends DIService.define<LogFunctionTarget & {
             this[key] = makeLogFunction(key, this)
         }
     }
+
 }
 
 class ChildLogger extends Logger {
     public sendMessage(message: LogMessage) {
         if (message.origin.length > 0) this.parent.sendMessage(message)
-        else this.parent.sendMessage({ ...message, prefix: [...this.parent.getPrefix(), this.customPrefix] })
+        else this.parent.sendMessage({ ...message, prefix: [this.customPrefix, ...message.prefix] })
     }
 
     constructor(
