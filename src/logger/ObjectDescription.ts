@@ -2,6 +2,11 @@ import { LogColor } from "./LogLevel"
 
 const primitiveTypes = new Set(["string", "number", "boolean"])
 
+interface RawSegment {
+    color: LogColor,
+    text: string
+}
+
 export class ObjectDescription {
     public readonly desc = ObjectDescription.inspectObject(this.target)
     constructor(public readonly target: any) { }
@@ -104,6 +109,13 @@ export namespace ObjectDescription {
                 }
             }
 
+            if (target[RAW_OBJECT]) {
+                return {
+                    type: "raw",
+                    segments: target.segments
+                }
+            }
+
             let name: string | null = target.constructor?.name
             if (name == "Object") name = null
             return {
@@ -193,9 +205,23 @@ export namespace ObjectDescription {
 
     export interface RawTextDescription extends DescriptionBase {
         type: "raw",
-        text: string,
-        color: LogColor
+        segments: RawSegment[]
     }
 
     export type AnyDescription = PrimitiveDescription | NullDescription | UndefinedDescription | SymbolDescription | DateDescription | FunctionDescription | ListDescription | RecordDescription | UnknownDescription | BigintDescription | ShallowDescription | CircularDescription | RawTextDescription | RegExpDescription
 }
+
+const RAW_OBJECT = Symbol("rawObject")
+
+export namespace LogMarker {
+    export function raw(segments: RawSegment[]) {
+        return {
+            [RAW_OBJECT]: true, segments
+        }
+    }
+
+    export function rawText(text: string, color: LogColor = "white") {
+        return raw([{ text, color }])
+    }
+}
+

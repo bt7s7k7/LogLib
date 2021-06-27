@@ -202,7 +202,8 @@ const descViews: {
     },
     symbol: (props) => () => <span class={colorLookup.green}>{props.desc.name}</span>,
     date: (props) => () => <span class={colorLookup.magenta}>{props.desc.date}</span>,
-    regexp: (props) => () => <span class={colorLookup.red}>{props.desc.source}</span>
+    regexp: (props) => () => <span class={colorLookup.red}>{props.desc.source}</span>,
+    raw: (props) => () => <span>{props.desc.segments.map(({ color, text }, i) => <span key={i} class={colorLookup[color]}>{text}</span>)}</span>
 }
 
 const descViewComponents = Object.fromEntries(Object.entries(descViews).map(([key, value]) => [key, defineComponent({
