@@ -1,5 +1,6 @@
 import { inspect } from "util"
 import { LogColor } from "../logger/LogLevel"
+import { RawSegment } from "../logger/ObjectDescription"
 
 export namespace ConsoleColorUtils {
     export const lookup: { [P in LogColor]: [number, number] } = {
@@ -14,8 +15,11 @@ export namespace ConsoleColorUtils {
         white: inspect.colors.white!
     }
 
-    export function addStyle(text: string, colorName: LogColor) {
-        const color = lookup[colorName]
-        return `\u001b[${color[0]}m${text}\u001b[${color[1]}m`
+    export function addStyle(text: string, color: RawSegment["color"] | LogColor) {
+        const colorCode =
+            typeof color == "string" ? lookup[color]
+                : color.custom ? [color.ansiCode ?? lookup.gray[0], lookup.gray[1]]
+                    : lookup[color.name]
+        return `\u001b[${colorCode[0]}m${text}\u001b[${colorCode[1]}m`
     }
 }

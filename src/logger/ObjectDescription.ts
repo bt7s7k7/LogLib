@@ -2,8 +2,8 @@ import { LogColor } from "./LogLevel"
 
 const primitiveTypes = new Set(["string", "number", "boolean"])
 
-interface RawSegment {
-    color: LogColor,
+export interface RawSegment {
+    color: { custom: false, name: LogColor } | { custom: true, code: string, ansiCode?: number },
     text: string
 }
 
@@ -213,6 +213,42 @@ export namespace ObjectDescription {
 
 const RAW_OBJECT = Symbol("rawObject")
 
+const ansiColorMap = {
+    "30": "black",
+    "31": "red",
+    "32": "green",
+    "33": "yellow",
+    "34": "blue",
+    "35": "magenta",
+    "36": "cyan",
+    "37": "white",
+    "90": "gray",
+    "91": "redBright",
+    "92": "greenBright",
+    "93": "yellowBright",
+    "94": "blueBright",
+    "95": "magentaBright",
+    "96": "cyanBright",
+    "97": "whiteBright"
+}
+
+const colorNameLookup = {
+    yellow: "#ddaa00",
+    red: "#aa0000",
+    green: "#00aa00",
+    blue: "#0000aa",
+    magenta: "#aa00aa",
+    cyan: "#00aaaa",
+    yellowBright: "#eedd00",
+    redBright: "#ee0000",
+    greenBright: "#00dd00",
+    blueBright: "#0000ee",
+    magentaBright: "#ee00ee",
+    cyanBright: "#00ddee",
+    grey: "#aaaaaa",
+    white: "#ffffff"
+}
+
 export namespace LogMarker {
     export function raw(segments: RawSegment[]) {
         return {
@@ -220,8 +256,35 @@ export namespace LogMarker {
         }
     }
 
-    export function rawText(text: string, color: LogColor = "white") {
+    export function rawText(text: string, color: RawSegment["color"] = { custom: false, name: "white" }) {
         return raw([{ text, color }])
     }
-}
 
+    export function ansiText(text: string) {
+        text += "\u001b[0m"
+
+        const segments: RawSegment[] = []
+
+        let currStyle: RawSegment["color"] = { custom: true, code: colorNameLookup.white, ansiCode: 37 }
+        let prevPos = 0
+        let pos = 0
+        let i = 0
+        while ((pos = text.indexOf("\u001b[", pos)) != -1) {
+            const segment = text.slice(prevPos, pos)
+            segments.push({ color: currStyle, text: segment })
+
+            const styleNumberStart = pos + 2
+            pos = text.indexOf("m", pos) + 1
+
+            const ansiCode = text.slice(styleNumberStart, pos - 1)
+            const colorName = ansiColorMap[ansiCode as keyof typeof ansiColorMap] ?? "white"
+            currStyle = { custom: true, code: colorNameLookup[colorName as keyof typeof colorNameLookup] ?? colorNameLookup.grey, ansiCode: +ansiCode }
+
+            prevPos = pos
+            i++
+            if (i > 1000) throw new Error("Infinite loop reached")
+        }
+
+        return raw(segments)
+    }
+}

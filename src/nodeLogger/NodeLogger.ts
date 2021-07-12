@@ -117,6 +117,11 @@ function writeDescription(desc: ObjectDescription) {
                 result: ConsoleColorUtils.addStyle(target.name, "white"),
                 multiline: false
             }
+        } else if (target.type == "raw") {
+            const result = target.segments.map(v => ConsoleColorUtils.addStyle(v.text, v.color)).join("")
+            return {
+                result, multiline: result.includes("\n")
+            }
         }
 
         return { result: ConsoleColorUtils.addStyle(target.type, "gray"), multiline: false }
