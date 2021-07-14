@@ -1,11 +1,12 @@
 import { css } from "@emotion/css"
-import { computed, defineComponent, onMounted, PropType, ref, shallowReactive } from "vue"
+import { computed, defineComponent, nextTick, onMounted, PropType, ref, shallowReactive, watch } from "vue"
 import { useContext } from "../dependencyInjectionVue/hooks"
 import { eventDecorator } from "../eventDecorator"
 import { Logger, LogMessage } from "../logger/Logger"
-import { LogColor, LogLevel } from "../logger/LogLevel"
+import { LogColor, LogLevel, LogLevelName } from "../logger/LogLevel"
 import { ObjectDescription } from "../logger/ObjectDescription"
 import { Button } from "../vue3gui/Button"
+import { useOptionalDynamicsEmitter } from "../vue3gui/DynamicsEmitter"
 import { Fold } from "../vue3gui/Fold"
 
 class VueLoggerStore {
@@ -260,14 +261,34 @@ const colorLookup: Record<LogColor, string> = {
 
 export const VueLoggerView = eventDecorator(defineComponent({
     name: "VueLoggerView",
+    props: {
+        level: {
+            type: String as PropType<LogLevelName>,
+            default: () => "info"
+        },
+        levelSelector: { type: Boolean }
+    },
+    emits: {
+        levelChanged: (name: LogLevelName) => true
+    },
     setup(props, ctx) {
         const context = useContext()
 
         const store = context.inject(VueLoggerStore)
+        const emitter = useOptionalDynamicsEmitter()
+
+
+        const selectLevel = async () => {
+            if (!emitter) throw new Error("No emitter injected")
+
+            const level = await emitter.listPrompt(Object.keys(LogLevel) as (keyof typeof LogLevel)[], { title: "Select log level" })
+
+            if (level) ctx.emit("levelChanged", level)
+        }
+
 
         return () => (
-            <div class="bg-dark p-2">
-                {store.value.messages.map((message, i) => (
+                {store.value.messages.map((message, i) => LogLevel[message.level].importance >= LogLevel[props.level].importance && (
                     <pre class="m-0" key={i}>
                         <span>
                             {message.origin.map((origin, i) => (
@@ -289,7 +310,11 @@ export const VueLoggerView = eventDecorator(defineComponent({
                         </span>
                     </pre>
                 ))}
-                <div class="absolute top-0 right-0 p-2">
+                <div class="fixed top-0 right-0 p-2 pr-5">
+                    {ctx.slots.buttons?.()}
+                    {props.levelSelector && <Button onClick={selectLevel}>
+                        <code>{LogLevel[props.level].label}</code>
+                    </Button>}
                     <Button textual flat onClick={() => store.value.clear()}>Clear</Button>
                 </div>
             </div>
