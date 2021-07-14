@@ -18,7 +18,7 @@ export interface LogLevel {
 export namespace LogLevel {
     export const debug: LogLevel = {
         color: "magenta",
-        importance: 1,
+        importance: 0,
         label: "@DBG",
         role: "log"
     }
