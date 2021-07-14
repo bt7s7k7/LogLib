@@ -286,8 +286,20 @@ export const VueLoggerView = eventDecorator(defineComponent({
             if (level) ctx.emit("levelChanged", level)
         }
 
+        const container = ref<HTMLDivElement>()
+        watch(() => store.value.messages.length, () => {
+            const containerElement = container.value!
+            const scrollHeight = containerElement.scrollHeight
+            const clientHeight = containerElement.clientHeight
+            const scrollTop = containerElement.scrollTop
+
+            if (scrollTop + clientHeight >= scrollHeight) {
+                nextTick(() => containerElement.scroll(0, 10000))
+            }
+        })
 
         return () => (
+            <div class="bg-dark p-2" ref={container}>
                 {store.value.messages.map((message, i) => LogLevel[message.level].importance >= LogLevel[props.level].importance && (
                     <pre class="m-0" key={i}>
                         <span>
