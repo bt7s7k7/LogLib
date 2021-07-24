@@ -109,6 +109,13 @@ export namespace ObjectDescription {
                 }
             }
 
+            if (target instanceof Error) {
+                return {
+                    type: "raw",
+                    segments: [{ color: { custom: false, name: "white" }, text: target.stack ?? target.message }]
+                }
+            }
+
             if (target[RAW_OBJECT]) {
                 return {
                     type: "raw",
