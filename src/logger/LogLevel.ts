@@ -50,6 +50,13 @@ export namespace LogLevel {
         label: "ERR!",
         role: "error"
     }
+
+    export const crit: LogLevel = {
+        color: "red",
+        importance: 5,
+        label: "crit",
+        role: "error"
+    }
 }
 
 export type LogLevelName = keyof typeof LogLevel
