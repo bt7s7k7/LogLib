@@ -241,13 +241,13 @@ const ansiColorMap = {
 
 const colorNameLookup = {
     yellow: "#ddaa00",
-    red: "#aa0000",
+    red: "#cd3131",
     green: "#00aa00",
     blue: "#0000aa",
     magenta: "#aa00aa",
     cyan: "#00aaaa",
     yellowBright: "#eedd00",
-    redBright: "#ee0000",
+    redBright: "#f14c4c",
     greenBright: "#00dd00",
     blueBright: "#0000ee",
     magentaBright: "#ee00ee",
