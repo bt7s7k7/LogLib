@@ -70,7 +70,7 @@ export namespace ObjectDescription {
                     name: target.constructor.name,
                     elements:
                         target instanceof Set ? [...target.entries()].map(([key, value], i) => inspectObject(value, ctx.descent(["elements", i.toString()])))
-                            : target.map((v, i) => inspectObject(v, ctx.descent(["elements", i.toString()])))
+                            : target.slice(0, 100).map((v, i) => inspectObject(v, ctx.descent(["elements", i.toString()])))
                 }
             }
 
@@ -130,7 +130,7 @@ export namespace ObjectDescription {
                 subtype: "object",
                 name,
                 items: [
-                    ...Object.entries(target).map(asKeyValuePairList),
+                    ...Object.entries(target).slice(0, 100).map(asKeyValuePairList),
                     ...Object.getOwnPropertySymbols(target).map(v => [v, target[v]]).map(asKeyValuePairList)
                 ]
             }
