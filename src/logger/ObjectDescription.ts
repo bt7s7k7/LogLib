@@ -240,20 +240,23 @@ const ansiColorMap = {
 }
 
 const colorNameLookup = {
-    yellow: "#ddaa00",
+    black: "#000000",
+    blue: "#2472c8",
+    brightBlack: "#666666",
+    brightBlue: "#3b8eea",
+    brightCyan: "#29b8db",
+    brightGreen: "#23d18b",
+    brightMagenta: "#d670d6",
+    brightRed: "#f14c4c",
+    brightWhite: "#ffffff",
+    brightYellow: "#f5f543",
+    cyan: "#11a8cd",
+    green: "#0dbc79",
+    magenta: "#bc3fbc",
     red: "#cd3131",
-    green: "#00aa00",
-    blue: "#0000aa",
-    magenta: "#aa00aa",
-    cyan: "#00aaaa",
-    yellowBright: "#eedd00",
-    redBright: "#f14c4c",
-    greenBright: "#00dd00",
-    blueBright: "#0000ee",
-    magentaBright: "#ee00ee",
-    cyanBright: "#00ddee",
+    white: "#e5e5e5",
+    yellow: "#e5e510",
     grey: "#aaaaaa",
-    white: "#ffffff"
 }
 
 export namespace LogMarker {
