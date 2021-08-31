@@ -1,7 +1,9 @@
 import { css } from "@emotion/css"
-import { computed, defineComponent, nextTick, onMounted, PropType, ref, shallowReactive, watch } from "vue"
+import { computed, defineComponent, markRaw, nextTick, onMounted, onUnmounted, PropType, ref, shallowReactive, watch } from "vue"
 import { useContext } from "../dependencyInjectionVue/hooks"
 import { eventDecorator } from "../eventDecorator"
+import { Disposable } from "../eventLib/Disposable"
+import { EventEmitter } from "../eventLib/EventEmitter"
 import { Logger, LogMessage } from "../logger/Logger"
 import { LogColor, LogLevel, LogLevelName } from "../logger/LogLevel"
 import { ObjectDescription } from "../logger/ObjectDescription"
@@ -9,17 +11,39 @@ import { Button } from "../vue3gui/Button"
 import { useOptionalDynamicsEmitter } from "../vue3gui/DynamicsEmitter"
 import { Fold } from "../vue3gui/Fold"
 
-class VueLoggerStore {
-    public messages: LogMessage[] = shallowReactive([])
+const MAX_MESSAGES = 500
+
+class VueLoggerStore extends Disposable {
+    public onMessage = new EventEmitter<LogMessage>()
+    protected messages: LogMessage[] = shallowReactive([])
 
     public clear() {
         this.messages.length = 0
+    }
+
+    public getMessages(level: LogLevelName) {
+        return this.messages.filter(message => LogLevel[message.level].importance >= LogLevel[level].importance)
+    }
+
+    public pushMessage(message: LogMessage) {
+        this.messages.push(message)
+        this.onMessage.emit(message)
+
+        if (this.messages.length > MAX_MESSAGES) {
+            this.messages.shift()
+        }
+    }
+
+    constructor() {
+        super()
+
+        markRaw(this)
     }
 }
 
 export class VueLogger extends Logger {
     public sendMessage(message: LogMessage) {
-        this.store.messages.push(message)
+        this.store.pushMessage(message)
     }
 
     public clear() {
@@ -275,8 +299,20 @@ export const VueLoggerView = eventDecorator(defineComponent({
         const context = useContext()
 
         const store = context.inject(VueLoggerStore)
+        {
+            const listener = store.value.onMessage.add(null, message => {
+                if (LogLevel[message.level].importance >= LogLevel[props.level].importance) messages.value.push(message)
+                if (messages.value.length > MAX_MESSAGES) {
+                    messages.value.shift()
+                }
+            })
+
+            onUnmounted(() => listener.remove())
+        }
+
         const emitter = useOptionalDynamicsEmitter()
 
+        const messages = ref<LogMessage[]>([])
 
         const selectLevel = async () => {
             if (!emitter) throw new Error("No emitter injected")
@@ -287,8 +323,9 @@ export const VueLoggerView = eventDecorator(defineComponent({
         }
 
         const container = ref<HTMLDivElement>()
-        watch(() => store.value.messages.length, () => {
-            const containerElement = container.value!
+        watch(() => messages.value.length, () => {
+            if (!container.value) return
+            const containerElement = container.value
             const scrollHeight = containerElement.scrollHeight
             const clientHeight = containerElement.clientHeight
             const scrollTop = containerElement.scrollTop
@@ -298,9 +335,13 @@ export const VueLoggerView = eventDecorator(defineComponent({
             }
         })
 
+        watch(() => props.level, level => {
+            messages.value = store.value.getMessages(level)
+        }, { immediate: true })
+
         return () => (
             <div class="bg-dark p-2" ref={container}>
-                {store.value.messages.map((message, i) => LogLevel[message.level].importance >= LogLevel[props.level].importance && (
+                {messages.value.map((message, i) => LogLevel[message.level].importance >= LogLevel[props.level].importance && (
                     <pre class="m-0" key={i}>
                         <span>
                             {message.origin.map((origin, i) => (
