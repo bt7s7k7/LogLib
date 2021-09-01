@@ -4,6 +4,7 @@ import { useContext } from "../dependencyInjectionVue/hooks"
 import { eventDecorator } from "../eventDecorator"
 import { Disposable } from "../eventLib/Disposable"
 import { EventEmitter } from "../eventLib/EventEmitter"
+import { EventListener } from "../eventLib/EventListener"
 import { Logger, LogMessage } from "../logger/Logger"
 import { LogColor, LogLevel, LogLevelName } from "../logger/LogLevel"
 import { ObjectDescription } from "../logger/ObjectDescription"
@@ -14,11 +15,13 @@ import { Fold } from "../vue3gui/Fold"
 const MAX_MESSAGES = 500
 
 class VueLoggerStore extends Disposable {
-    public onMessage = new EventEmitter<LogMessage>()
+    public readonly onMessage = new EventEmitter<LogMessage>()
+    public readonly onClear = new EventEmitter()
     protected messages: LogMessage[] = shallowReactive([])
 
     public clear() {
         this.messages.length = 0
+        this.onClear.emit()
     }
 
     public getMessages(level: LogLevelName) {
@@ -300,14 +303,20 @@ export const VueLoggerView = eventDecorator(defineComponent({
 
         const store = context.inject(VueLoggerStore)
         {
-            const listener = store.value.onMessage.add(null, message => {
+            const listener = new EventListener()
+
+            store.value.onMessage.add(listener, message => {
                 if (LogLevel[message.level].importance >= LogLevel[props.level].importance) messages.value.push(message)
                 if (messages.value.length > MAX_MESSAGES) {
                     messages.value.shift()
                 }
             })
 
-            onUnmounted(() => listener.remove())
+            store.value.onClear.add(listener, () => {
+                messages.value.length = 0
+            })
+
+            onUnmounted(() => listener.dispose())
         }
 
         const emitter = useOptionalDynamicsEmitter()
