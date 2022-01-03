@@ -12,7 +12,7 @@ export namespace ConsoleColorUtils {
         magenta: inspect.colors.magentaBright!,
         red: inspect.colors.redBright!,
         yellow: inspect.colors.yellowBright!,
-        white: inspect.colors.white!
+        white: inspect.colors.whiteBright!
     }
 
     export function addStyle(text: string, color: RawSegment["color"] | LogColor) {
