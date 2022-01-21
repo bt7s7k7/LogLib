@@ -140,6 +140,10 @@ function writeDescription(desc: ObjectDescription) {
 }
 
 export class NodeLogger extends Logger {
+    public write: (message: string, type: "stdout" | "stderr") => void = (message, type) => {
+        process[type].write(message)
+    }
+
     public sendMessage(message: LogMessage) {
         const level = LogLevel[message.level]
         inspector.console[level.role](...message.content.map(value =>
@@ -149,34 +153,35 @@ export class NodeLogger extends Logger {
                     : value.target
         ))
 
-        const output = process[level.role == "log" ? "stdout" : "stderr"]
+        let output = ""
 
         for (const { color, label } of message.origin) {
-            output.write("[")
-            output.write(ConsoleColorUtils.addStyle(label, color))
-            output.write("]")
+            output += "["
+            output += ConsoleColorUtils.addStyle(label, color)
+            output += "]"
         }
 
-        output.write("[")
-        output.write(ConsoleColorUtils.addStyle(level.label, level.color))
-        output.write("]")
+        output += "["
+        output += ConsoleColorUtils.addStyle(level.label, level.color)
+        output += "]"
 
         for (const { color, label } of message.prefix) {
-            output.write("[")
-            output.write(ConsoleColorUtils.addStyle(label, color))
-            output.write("]")
+            output += "["
+            output += ConsoleColorUtils.addStyle(label, color)
+            output += "]"
         }
 
-        output.write(" ")
+        output += " "
 
         for (const value of message.content) {
             if (typeof value == "string") {
-                output.write(value)
+                output += value
             } else {
-                output.write(writeDescription(value))
+                output += writeDescription(value)
             }
         }
 
-        output.write("\n")
+        output += "\n"
+        this.write(output, level.role == "log" ? "stdout" : "stderr")
     }
 }
