@@ -266,7 +266,9 @@ export namespace LogMarker {
         }
     }
 
-    export function rawText(text: string, color: RawSegment["color"] = { custom: false, name: "white" }) {
+    export function rawText(text: string, color: RawSegment["color"] | LogColor = { custom: false, name: "white" }) {
+        if (typeof color == "string") color = { custom: false, name: color }
+        
         return raw([{ text, color }])
     }
 
