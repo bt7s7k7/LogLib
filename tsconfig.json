@@ -16,6 +16,8 @@
         "test"
     ],
     "exclude": [
-        "src/vueLogger"
+        "src/vueLogger",
+        "src/vue3gui",
+        "src/dependencyInjectionVue",
     ]
 }
