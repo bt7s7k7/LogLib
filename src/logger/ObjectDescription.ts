@@ -1,3 +1,4 @@
+import { DescriptionFormatter } from "./DescriptionFormatter"
 import { LogColor } from "./LogLevel"
 
 const primitiveTypes = new Set(["string", "number", "boolean"])
@@ -239,26 +240,6 @@ const ansiColorMap = {
     "97": "whiteBright"
 }
 
-const colorNameLookup = {
-    black: "#000000",
-    blue: "#2472c8",
-    brightBlack: "#666666",
-    brightBlue: "#3b8eea",
-    brightCyan: "#29b8db",
-    brightGreen: "#23d18b",
-    brightMagenta: "#d670d6",
-    brightRed: "#f14c4c",
-    brightWhite: "#ffffff",
-    brightYellow: "#f5f543",
-    cyan: "#11a8cd",
-    green: "#0dbc79",
-    magenta: "#bc3fbc",
-    red: "#cd3131",
-    white: "#e5e5e5",
-    yellow: "#e5e510",
-    grey: "#aaaaaa",
-}
-
 export namespace LogMarker {
     export function raw(segments: RawSegment[]) {
         return {
@@ -268,7 +249,7 @@ export namespace LogMarker {
 
     export function rawText(text: string, color: RawSegment["color"] | LogColor = { custom: false, name: "white" }) {
         if (typeof color == "string") color = { custom: false, name: color }
-        
+
         return raw([{ text, color }])
     }
 
@@ -277,7 +258,7 @@ export namespace LogMarker {
 
         const segments: RawSegment[] = []
 
-        let currStyle: RawSegment["color"] = { custom: true, code: colorNameLookup.white, ansiCode: 37 }
+        let currStyle: RawSegment["color"] = { custom: true, code: DescriptionFormatter.DEFAULT_COLOR_CODES.white, ansiCode: 37 }
         let prevPos = 0
         let pos = 0
         let i = 0
@@ -290,7 +271,7 @@ export namespace LogMarker {
 
             const ansiCode = text.slice(styleNumberStart, pos - 1)
             const colorName = ansiColorMap[ansiCode as keyof typeof ansiColorMap] ?? "white"
-            currStyle = { custom: true, code: colorNameLookup[colorName as keyof typeof colorNameLookup] ?? colorNameLookup.grey, ansiCode: +ansiCode }
+            currStyle = { custom: true, code: DescriptionFormatter.DEFAULT_COLOR_CODES[colorName as keyof typeof DescriptionFormatter.DEFAULT_COLOR_CODES] ?? DescriptionFormatter.DEFAULT_COLOR_CODES.grey, ansiCode: +ansiCode }
 
             prevPos = pos
             i++
