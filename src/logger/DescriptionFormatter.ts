@@ -63,7 +63,7 @@ export namespace DescriptionFormatter {
                 }
 
                 if (subtype == "number" || subtype == "boolean") return {
-                    result: color(JSON.stringify(target.value), colorMap.primitive),
+                    result: color(target.value.toString(), colorMap.primitive),
                     multiline: false
                 }
             } else if (target.type == "bigint") {
