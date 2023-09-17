@@ -15,7 +15,7 @@ export class ObjectDescription {
 }
 
 export namespace ObjectDescription {
-    class Context {
+    export class Context {
         public readonly seen: Map<any, string[]> = this.parent?.seen ?? new Map()
 
         public descent(path: string[]) {
@@ -130,6 +130,13 @@ export namespace ObjectDescription {
                 }
             }
 
+            if (LogMarker.CUSTOM in target) {
+                const result = target[LogMarker.CUSTOM](ctx)
+                if (result != target) {
+                    return ObjectDescription.inspectObject(result, ctx)
+                }
+            }
+
             if (target instanceof Error) {
                 return {
                     type: "raw",
@@ -239,7 +246,7 @@ export namespace ObjectDescription {
     export type AnyDescription = PrimitiveDescription | NullDescription | UndefinedDescription | SymbolDescription | DateDescription | FunctionDescription | ListDescription | RecordDescription | UnknownDescription | BigintDescription | ShallowDescription | CircularDescription | RawTextDescription | RegExpDescription
 }
 
-const RAW_OBJECT = Symbol("rawObject")
+const RAW_OBJECT = Symbol.for("Logger.ObjectDescription.RawObject")
 
 const ansiColorMap = {
     "30": "black",
@@ -261,7 +268,9 @@ const ansiColorMap = {
 }
 
 export namespace LogMarker {
-    export function raw(segments: RawSegment[]) {
+    export const CUSTOM = Symbol.for("Logger.ObjectDescription.Custom")
+
+    export function raw(segments: RawSegment[]): unknown {
         return {
             [RAW_OBJECT]: true, segments
         }
