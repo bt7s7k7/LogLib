@@ -64,14 +64,33 @@ export namespace ObjectDescription {
             if (ctx.seen.has(target)) return { type: "circular", path: ctx.seen.get(target)! }
             ctx.seen.set(target, ctx.path)
 
-            if (target instanceof Set || target instanceof Array) {
+            const isTypedArray = ArrayBuffer.isView(target) && !(target instanceof DataView)
+            if (target instanceof Array || isTypedArray) {
+                let array = target as any[]
+                if (array.length <= 100) {
+                    if (isTypedArray) array = [...array]
+                } else {
+                    array = [
+                        ...array.slice(0, 50),
+                        LogMarker.rawText(`...${array.length - 100} elements`),
+                        ...array.slice(-50)
+                    ]
+                }
+
                 return {
                     type: "list",
-                    subtype: target instanceof Set ? "set" : "array",
+                    subtype: "array",
                     name: target.constructor.name,
-                    elements:
-                        target instanceof Set ? [...target.entries()].map(([key, value], i) => inspectObject(value, ctx.descent(["elements", i.toString()])))
-                            : target.slice(0, 100).map((v, i) => inspectObject(v, ctx.descent(["elements", i.toString()])))
+                    elements: array.map((v, i) => inspectObject(v, ctx.descent(["elements", i.toString()])))
+                }
+            }
+
+            if (target instanceof Set) {
+                return {
+                    type: "list",
+                    subtype: "set",
+                    name: target.constructor.name,
+                    elements: [...target.entries()].map(([key, value], i) => inspectObject(value, ctx.descent(["elements", i.toString()])))
                 }
             }
 
