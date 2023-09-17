@@ -6,6 +6,7 @@ const primitiveTypes = new Set(["string", "number", "boolean"])
 export interface RawSegment {
     color: { custom: false, name: LogColor } | { custom: true, code: string, ansiCode?: number },
     text: string
+    indent?: boolean
 }
 
 export class ObjectDescription {
@@ -266,10 +267,10 @@ export namespace LogMarker {
         }
     }
 
-    export function rawText(text: string, color: RawSegment["color"] | LogColor = { custom: false, name: "white" }) {
+    export function rawText(text: string, color: RawSegment["color"] | LogColor = { custom: false, name: "white" }, { indent = false } = {}) {
         if (typeof color == "string") color = { custom: false, name: color }
 
-        return raw([{ text, color }])
+        return raw([{ text, color, ...(indent ? { indent: true } : undefined) }])
     }
 
     export function ansiText(text: string) {

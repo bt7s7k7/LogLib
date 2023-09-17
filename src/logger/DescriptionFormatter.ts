@@ -53,7 +53,7 @@ export namespace DescriptionFormatter {
         | "shallow"
         | "other"
 
-    export function formatDescription(root: ObjectDescription.AnyDescription, { color, lineLimit = 50, colorMap = DEFAULT_COLOR_MAP }: Options) {
+    export function formatDescription(root: ObjectDescription.AnyDescription, { color, lineLimit = 50, colorMap = DEFAULT_COLOR_MAP}: Options) {
         const visit = (target: ObjectDescription.AnyDescription, indent: number): { result: string, multiline: boolean } => {
             if (target.type == "primitive") {
                 const subtype = typeof target.value
@@ -162,7 +162,7 @@ export namespace DescriptionFormatter {
                     multiline: false
                 }
             } else if (target.type == "raw") {
-                const result = target.segments.map(v => color(v.text, v.color)).join("")
+                const result = target.segments.map(v => v.indent ? color(v.text, v.color).replace(/\n/g, "\n" + "  ".repeat(indent)) : color(v.text, v.color)).join("")
                 return {
                     result, multiline: result.includes("\n")
                 }
