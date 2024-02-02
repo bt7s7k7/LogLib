@@ -6,8 +6,9 @@ import { Disposable } from "../eventLib/Disposable"
 import { EventEmitter } from "../eventLib/EventEmitter"
 import { EventListener } from "../eventLib/EventListener"
 import { Logger, LogMessage } from "../logger/Logger"
-import { LogColor, LogLevel, LogLevelName } from "../logger/LogLevel"
-import { ObjectDescription } from "../logger/ObjectDescription"
+import { LogLevel, LogLevelName } from "../logger/LogLevel"
+import { ColorName } from "../prettyPrint/DescriptionFormatter"
+import { ObjectDescription } from "../prettyPrint/ObjectDescription"
 import { Button } from "../vue3gui/Button"
 import { useOptionalDynamicsEmitter } from "../vue3gui/DynamicsEmitter"
 import { Fold } from "../vue3gui/Fold"
@@ -274,7 +275,7 @@ const DescView = defineComponent({
     }
 })
 
-const colorLookup: Record<LogColor, string> = {
+const colorLookup: Record<ColorName, string> = {
     black: css({ color: "black" }),
     blue: css({ color: "#00aaff" }),
     cyan: css({ color: "cyan" }),

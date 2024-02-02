@@ -1,10 +1,9 @@
-import { DescriptionFormatter } from "./DescriptionFormatter"
-import { LogColor } from "./LogLevel"
+import { ColorName, DescriptionFormatter, SegmentColor } from "./DescriptionFormatter"
 
 const primitiveTypes = new Set(["string", "number", "boolean"])
 
 export interface RawSegment {
-    color: { custom: false, name: LogColor } | { custom: true, code: string, ansiCode?: number },
+    color: SegmentColor,
     text: string
     indent?: boolean
 }
@@ -276,7 +275,7 @@ export namespace LogMarker {
         }
     }
 
-    export function rawText(text: string, color: RawSegment["color"] | LogColor = { custom: false, name: "white" }, { indent = false } = {}) {
+    export function rawText(text: string, color: SegmentColor | ColorName = { custom: false, name: "white" }, { indent = false } = {}) {
         if (typeof color == "string") color = { custom: false, name: color }
 
         return raw([{ text, color, ...(indent ? { indent: true } : undefined) }])
@@ -287,7 +286,7 @@ export namespace LogMarker {
 
         const segments: RawSegment[] = []
 
-        let currStyle: RawSegment["color"] = { custom: true, code: DescriptionFormatter.DEFAULT_COLOR_CODES.white, ansiCode: 37 }
+        let currStyle: SegmentColor = { custom: true, code: DescriptionFormatter.DEFAULT_COLOR_CODES.white, ansiCode: 37 }
         let prevPos = 0
         let pos = 0
         let i = 0

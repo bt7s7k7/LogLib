@@ -1,15 +1,25 @@
-import { LogMessage } from "./Logger"
-import { LogLevel } from "./LogLevel"
-import { ObjectDescription, RawSegment } from "./ObjectDescription"
+import { ObjectDescription } from "./ObjectDescription"
 
-interface Options {
-    color: (text: string, color: RawSegment["color"]) => string
-    lineLimit?: number
-    colorMap?: Record<DescriptionFormatter.ColorType, RawSegment["color"]>
-}
+export type ColorName = "blue"
+    | "cyan"
+    | "yellow"
+    | "red"
+    | "green"
+    | "magenta"
+    | "white"
+    | "gray"
+    | "black"
+
+export type SegmentColor = { custom: false, name: ColorName } | { custom: true, code: string, ansiCode?: number }
 
 export namespace DescriptionFormatter {
-    export const DEFAULT_COLOR_MAP: Record<ColorType, RawSegment["color"]> = {
+    export interface FormatOptions {
+        color: (text: string, color: SegmentColor) => string
+        lineLimit?: number
+        colorMap?: Record<ColorType, SegmentColor>
+    }
+
+    export const DEFAULT_COLOR_MAP: Record<ColorType, SegmentColor> = {
         string: { custom: false, name: "green" },
         primitive: { custom: false, name: "yellow" },
         function: { custom: false, name: "cyan" },
@@ -53,7 +63,7 @@ export namespace DescriptionFormatter {
         | "shallow"
         | "other"
 
-    export function formatDescription(root: ObjectDescription.AnyDescription, { color, lineLimit = 50, colorMap = DEFAULT_COLOR_MAP}: Options) {
+    export function formatDescription(root: ObjectDescription.AnyDescription, { color, lineLimit = 50, colorMap = DEFAULT_COLOR_MAP }: FormatOptions) {
         const visit = (target: ObjectDescription.AnyDescription, indent: number): { result: string, multiline: boolean } => {
             if (target.type == "primitive") {
                 const subtype = typeof target.value
@@ -181,39 +191,5 @@ export namespace DescriptionFormatter {
         }
 
         return visit(root, 0).result
-    }
-
-    export function formatMessage(message: LogMessage, options: Options) {
-        const level = LogLevel[message.level]
-
-        let output = ""
-
-        for (const { color, label } of message.origin) {
-            output += "["
-            output += options.color(label, { custom: false, name: color })
-            output += "]"
-        }
-
-        output += "["
-        output += options.color(level.label, { custom: false, name: level.color })
-        output += "]"
-
-        for (const { color, label } of message.prefix) {
-            output += "["
-            output += options.color(label, { custom: false, name: color })
-            output += "]"
-        }
-
-        output += " "
-
-        for (const value of message.content) {
-            if (typeof value == "string") {
-                output += value
-            } else {
-                output += formatDescription(value.desc, options)
-            }
-        }
-
-        return output
     }
 }

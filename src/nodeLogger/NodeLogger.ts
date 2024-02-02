@@ -1,6 +1,6 @@
-import { DescriptionFormatter } from "../logger/DescriptionFormatter"
 import { Logger, LogMessage } from "../logger/Logger"
 import { LogLevel } from "../logger/LogLevel"
+import { DescriptionFormatter } from "../prettyPrint/DescriptionFormatter"
 import { ConsoleColorUtils } from "./ConsoleColorUtils"
 const inspector = require("inspector")
 

@@ -1,16 +1,8 @@
-export type LogColor = "blue"
-    | "cyan"
-    | "yellow"
-    | "red"
-    | "green"
-    | "magenta"
-    | "white"
-    | "gray"
-    | "black"
+import { ColorName } from "../prettyPrint/DescriptionFormatter"
 
 export interface LogLevel {
     label: string
-    color: LogColor
+    color: ColorName
     importance: number
     role: "warn" | "error" | "log"
 }

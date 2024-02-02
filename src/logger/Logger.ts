@@ -1,10 +1,11 @@
 import { DIService } from "../dependencyInjection/DIService"
-import { LogColor, LogLevel, LogLevelName } from "./LogLevel"
-import { ObjectDescription } from "./ObjectDescription"
+import { ColorName, DescriptionFormatter } from "../prettyPrint/DescriptionFormatter"
+import { ObjectDescription } from "../prettyPrint/ObjectDescription"
+import { LogLevel, LogLevelName } from "./LogLevel"
 
 export interface LogPrefix {
     label: string
-    color: LogColor
+    color: ColorName
 }
 
 export interface LogMessage {
@@ -47,6 +48,40 @@ export class Logger extends DIService.define<LogFunctionTarget & {
         for (const key of Object.keys(LogLevel) as (keyof typeof LogLevel)[]) {
             this[key] = makeLogFunction(key, this)
         }
+    }
+
+    public static formatMessage(message: LogMessage, options: DescriptionFormatter.FormatOptions) {
+        const level = LogLevel[message.level]
+
+        let output = ""
+
+        for (const { color, label } of message.origin) {
+            output += "["
+            output += options.color(label, { custom: false, name: color })
+            output += "]"
+        }
+
+        output += "["
+        output += options.color(level.label, { custom: false, name: level.color })
+        output += "]"
+
+        for (const { color, label } of message.prefix) {
+            output += "["
+            output += options.color(label, { custom: false, name: color })
+            output += "]"
+        }
+
+        output += " "
+
+        for (const value of message.content) {
+            if (typeof value == "string") {
+                output += value
+            } else {
+                output += DescriptionFormatter.formatDescription(value.desc, options)
+            }
+        }
+
+        return output
     }
 
 }
