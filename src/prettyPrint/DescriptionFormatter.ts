@@ -9,6 +9,7 @@ export type ColorName = "blue"
     | "white"
     | "gray"
     | "black"
+    | "bold"
 
 export type SegmentColor = { custom: false, name: ColorName } | { custom: true, code: string, ansiCode?: number }
 
@@ -28,6 +29,7 @@ export namespace DescriptionFormatter {
         date: { custom: false, name: "magenta" },
         regexp: { custom: false, name: "red" },
         shallow: { custom: false, name: "white" },
+        type: { custom: false, name: "bold" },
         other: { custom: false, name: "gray" }
     }
 
@@ -52,6 +54,40 @@ export namespace DescriptionFormatter {
         gray: "#aaaaaa"
     }
 
+    export const LIGHT_COLOR_CODES = {
+        black: "#000000",
+        blue: "#1568c4",
+        brightBlack: "#000000",
+        brightBlue: "#1568c4",
+        brightCyan: "#24b2d6",
+        brightGreen: "#1f8236",
+        brightMagenta: "#8f288f",
+        brightRed: "#b30e0e",
+        brightWhite: "#000000",
+        brightYellow: "#cf4600",
+        cyan: "#24b2d6",
+        green: "#1f8236",
+        magenta: "#8f288f",
+        red: "#b30e0e",
+        white: "#191919",
+        yellow: "#cf4600",
+        grey: "#555555",
+        gray: "#555555"
+    }
+
+    export const ANSI_COLOR_CODES = {
+        black: "30", /* ANSI black */
+        blue: "94", /* ANSI bright blue */
+        bold: "1", /* ANSI bold */
+        cyan: "96", /* ANSI bright cyan */
+        gray: "90", /* ANSI bright black */
+        green: "92", /* ANSI bright green */
+        magenta: "95", /* ANSI bright magenta */
+        red: "91", /* ANSI bright red */
+        white: "0", /* ANSI reset */
+        yellow: "93", /* ANSI bright yellow */
+    }
+
     export type ColorType =
         | "string"
         | "primitive"
@@ -62,6 +98,38 @@ export namespace DescriptionFormatter {
         | "regexp"
         | "shallow"
         | "other"
+        | "type"
+
+    export function htmlColor(text: string, color: SegmentColor) {
+        const escapeHTML = (source: string) => source
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;")
+
+        const style = color.custom == false && color.name == "bold" ? (
+            `text-weight: bold`
+        ) : color.custom ? (
+            `color: ${color.code}`
+        ) : (
+            `color: ${LIGHT_COLOR_CODES[color.name as Exclude<ColorName, "bold">]}`
+        )
+
+        return `<span style="${style}">${escapeHTML(text)}</span>`
+    }
+
+    export function ansiColor(text: string, color: SegmentColor) {
+        if (color.custom) {
+            return text
+        }
+
+        if (color.name == "bold") {
+            return `\u001b[1m${text}\u001b[0m`
+        }
+
+        return `\u001b[${ANSI_COLOR_CODES[color.name]}m${text}\u001b[0m`
+    }
 
     export function formatDescription(root: ObjectDescription.AnyDescription, { color, lineLimit = 50, colorMap = DEFAULT_COLOR_MAP }: FormatOptions) {
         const visit = (target: ObjectDescription.AnyDescription, indent: number): { result: string, multiline: boolean } => {
@@ -102,7 +170,7 @@ export namespace DescriptionFormatter {
                     }
                 }
 
-                const prefix = target.name != "Array" ? `${target.name}(${items.length}) [` : "["
+                const prefix = target.name != "Array" ? `${color(target.name ?? "null", colorMap.type)}(${items.length}) [` : "["
 
                 if (maxLength * items.length < lineLimit) {
                     return {
@@ -133,7 +201,7 @@ export namespace DescriptionFormatter {
 
                 }
 
-                const prefix = target.name ? `${target.name} {` : "{"
+                const prefix = target.name ? `${color(target.name, colorMap.type)} {` : "{"
 
                 if (maxLength * items.length < lineLimit) {
                     return {

@@ -11,7 +11,8 @@ export namespace ConsoleColorUtils {
         magenta: inspect.colors.magentaBright!,
         red: inspect.colors.redBright!,
         yellow: inspect.colors.yellowBright!,
-        white: inspect.colors.whiteBright!
+        white: inspect.colors.whiteBright!,
+        bold: inspect.colors.whiteBright!
     }
 
     export function addStyle(text: string, color: SegmentColor | ColorName) {
