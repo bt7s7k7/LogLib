@@ -109,7 +109,7 @@ export namespace DescriptionFormatter {
             .replace(/'/g, "&#039;")
 
         const style = color.custom == false && color.name == "bold" ? (
-            `text-weight: bold`
+            `font-weight: bold`
         ) : color.custom ? (
             `color: ${color.code}`
         ) : (
