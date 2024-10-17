@@ -152,14 +152,23 @@ export namespace ObjectDescription {
 
             let name: string | null = target.constructor?.name
             if (name == "Object") name = null
+            const items: RecordDescription["items"] = []
+
+            for (const [key, value] of Object.entries(target)) {
+                items.push(asKeyValuePairList([key, value], items.length))
+            }
+
+            for (const symbol of Object.getOwnPropertySymbols(target)) {
+                const descriptor = Object.getOwnPropertyDescriptor(target, symbol)!
+                // Unlike `entries()`, `getOwnPropertySymbols()` also returns symbols for not enumerable properties
+                if (!descriptor.enumerable) continue
+                items.push(asKeyValuePairList([symbol, target[symbol]], items.length))
+            }
+
             return {
                 type: "record",
                 subtype: "object",
-                name,
-                items: [
-                    ...Object.entries(target).slice(0, 100).map(asKeyValuePairList),
-                    ...Object.getOwnPropertySymbols(target).map(v => [v, target[v]]).map(asKeyValuePairList)
-                ]
+                name, items
             }
         }
 
