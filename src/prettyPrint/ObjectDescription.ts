@@ -23,7 +23,7 @@ export namespace ObjectDescription {
 
         constructor(
             public readonly parent: Context | null = null,
-            public readonly path: string[] = parent?.path ?? []
+            public readonly path: string[] = parent?.path ?? [],
         ) { }
     }
 
@@ -31,7 +31,7 @@ export namespace ObjectDescription {
         if (primitiveTypes.has(typeof target)) {
             return {
                 type: "primitive",
-                value: target
+                value: target,
             }
         } else if (typeof target == "function") {
             const isClass = target.toString().startsWith("class")
@@ -44,17 +44,17 @@ export namespace ObjectDescription {
             return {
                 type: "function",
                 subtype: isClass ? "class" : "function",
-                name: name
+                name: name,
             }
         } else if (typeof target == "symbol") {
             return {
                 type: "symbol",
-                name: target.toString()
+                name: target.toString(),
             }
         } else if (typeof target == "bigint") {
             return {
                 type: "bigint",
-                value: target.toString()
+                value: target.toString(),
             }
         } else if (typeof target == "undefined") {
             return { type: "undefined" }
@@ -73,7 +73,7 @@ export namespace ObjectDescription {
                     array = [
                         ...array.slice(0, 50),
                         LogMarker.rawText(`...${array.length - 100} elements`),
-                        ...array.slice(-50)
+                        ...array.slice(-50),
                     ]
                 }
 
@@ -81,7 +81,7 @@ export namespace ObjectDescription {
                     type: "list",
                     subtype: "array",
                     name: target.constructor.name,
-                    elements: array.map((v, i) => inspectObject(v, ctx.descent(["elements", i.toString()])))
+                    elements: array.map((v, i) => inspectObject(v, ctx.descent(["elements", i.toString()]))),
                 }
             }
 
@@ -90,13 +90,13 @@ export namespace ObjectDescription {
                     type: "list",
                     subtype: "set",
                     name: target.constructor.name,
-                    elements: [...target.entries()].map(([key, value], i) => inspectObject(value, ctx.descent(["elements", i.toString()])))
+                    elements: [...target.entries()].map(([key, value], i) => inspectObject(value, ctx.descent(["elements", i.toString()]))),
                 }
             }
 
             const asKeyValuePairList = ([key, value]: any[], i: number) => ({
                 key: inspectObject(key, ctx.descent(["items", i.toString(), "key"])),
-                value: inspectObject(value, ctx.descent(["items", i.toString(), "value"]))
+                value: inspectObject(value, ctx.descent(["items", i.toString(), "value"])),
             })
 
             if (target instanceof Map) {
@@ -104,28 +104,28 @@ export namespace ObjectDescription {
                     type: "record",
                     subtype: "map",
                     name: target.constructor.name,
-                    items: [...target].map(asKeyValuePairList)
+                    items: [...target].map(asKeyValuePairList),
                 }
             }
 
             if (target instanceof RegExp) {
                 return {
                     type: "regexp",
-                    source: target.toString()
+                    source: target.toString(),
                 }
             }
 
             if (target instanceof Date) {
                 return {
                     type: "date",
-                    date: target.toISOString()
+                    date: target.toISOString(),
                 }
             }
 
             if (target instanceof WeakMap || target instanceof WeakSet || target instanceof Promise) {
                 return {
                     type: "shallow",
-                    name: target.constructor.name
+                    name: target.constructor.name,
                 }
             }
 
@@ -139,14 +139,14 @@ export namespace ObjectDescription {
             if (target instanceof Error) {
                 return {
                     type: "raw",
-                    segments: [{ color: { custom: false, name: "white" }, text: target.stack ?? target.message }]
+                    segments: [{ color: { custom: false, name: "white" }, text: target.stack ?? target.message }],
                 }
             }
 
             if (target[RAW_OBJECT]) {
                 return {
                     type: "raw",
-                    segments: target.segments
+                    segments: target.segments,
                 }
             }
 
@@ -168,7 +168,7 @@ export namespace ObjectDescription {
             return {
                 type: "record",
                 subtype: "object",
-                name, items
+                name, items,
             }
         }
 
@@ -272,7 +272,7 @@ const ansiColorMap = {
     "94": "blueBright",
     "95": "magentaBright",
     "96": "cyanBright",
-    "97": "whiteBright"
+    "97": "whiteBright",
 }
 
 export namespace LogMarker {
@@ -280,7 +280,7 @@ export namespace LogMarker {
 
     export function raw(segments: RawSegment[]): unknown {
         return {
-            [RAW_OBJECT]: true, segments
+            [RAW_OBJECT]: true, segments,
         }
     }
 

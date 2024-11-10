@@ -6,7 +6,7 @@ export function inspect(value: any, options?: inspect.InspectOptions) {
 
     return DescriptionFormatter.formatDescription(desc, {
         ...options,
-        color: options?.color ?? (options?.colors ? inspect.defaultColor : (text) => text)
+        color: options?.color ?? (options?.colors ? inspect.defaultColor : (text) => text),
     })
 }
 

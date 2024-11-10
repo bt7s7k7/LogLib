@@ -30,7 +30,7 @@ export namespace DescriptionFormatter {
         regexp: { custom: false, name: "red" },
         shallow: { custom: false, name: "white" },
         type: { custom: false, name: "bold" },
-        other: { custom: false, name: "gray" }
+        other: { custom: false, name: "gray" },
     }
 
     export const DEFAULT_COLOR_CODES = {
@@ -51,7 +51,7 @@ export namespace DescriptionFormatter {
         white: "#e5e5e5",
         yellow: "#e5e510",
         grey: "#aaaaaa",
-        gray: "#aaaaaa"
+        gray: "#aaaaaa",
     }
 
     export const LIGHT_COLOR_CODES = {
@@ -72,7 +72,7 @@ export namespace DescriptionFormatter {
         white: "#191919",
         yellow: "#cf4600",
         grey: "#555555",
-        gray: "#555555"
+        gray: "#555555",
     }
 
     export const ANSI_COLOR_CODES = {
@@ -137,22 +137,22 @@ export namespace DescriptionFormatter {
                 const subtype = typeof target.value
                 if (subtype == "string") return {
                     result: color(JSON.stringify(target.value), colorMap.string),
-                    multiline: false
+                    multiline: false,
                 }
 
                 if (subtype == "number" || subtype == "boolean") return {
                     result: color(target.value.toString(), colorMap.primitive),
-                    multiline: false
+                    multiline: false,
                 }
             } else if (target.type == "bigint") {
                 return {
                     result: color(target.value.toString() + "n", colorMap.primitive),
-                    multiline: false
+                    multiline: false,
                 }
             } else if (target.type == "function") {
                 return {
                     result: color(`[${target.subtype} ${target.name}]`, colorMap.function),
-                    multiline: false
+                    multiline: false,
                 }
             } else if (target.type == "list") {
                 const items = target.elements.map(v => visit(v, indent + 1))
@@ -175,12 +175,12 @@ export namespace DescriptionFormatter {
                 if (maxLength * items.length < lineLimit) {
                     return {
                         result: `${prefix}${items.length == 0 ? "" : " " + items.map(v => v.result).join(", ") + " "}]`,
-                        multiline: false
+                        multiline: false,
                     }
                 } else {
                     return {
                         result: prefix + "\n" + items.map(v => "  ".repeat(indent + 1) + v.result).join("\n") + "\n" + "  ".repeat(indent) + "]",
-                        multiline: true
+                        multiline: true,
                     }
                 }
             } else if (target.type == "record") {
@@ -206,43 +206,43 @@ export namespace DescriptionFormatter {
                 if (maxLength * items.length < lineLimit) {
                     return {
                         result: `${prefix}${items.length == 0 ? "" : " " + items.map(v => `${v.key.result}: ${v.value.result}`).join(", ") + " "}}`,
-                        multiline: false
+                        multiline: false,
                     }
                 } else {
                     return {
                         result: prefix + "\n" + items.map(v => "  ".repeat(indent + 1) + `${v.key.result}: ${v.value.result}`).join("\n") + "\n" + "  ".repeat(indent) + "}",
-                        multiline: true
+                        multiline: true,
                     }
                 }
             } else if (target.type == "symbol") {
                 return {
                     result: color(target.name, colorMap.symbol),
-                    multiline: false
+                    multiline: false,
                 }
             } else if (target.type == "circular") {
                 return {
                     result: color(`[circular]`, colorMap.circular),
-                    multiline: false
+                    multiline: false,
                 }
             } else if (target.type == "date") {
                 return {
                     result: color(target.date, colorMap.date),
-                    multiline: false
+                    multiline: false,
                 }
             } else if (target.type == "regexp") {
                 return {
                     result: color(target.source, colorMap.regexp),
-                    multiline: false
+                    multiline: false,
                 }
             } else if (target.type == "shallow") {
                 return {
                     result: color(target.name, colorMap.shallow),
-                    multiline: false
+                    multiline: false,
                 }
             } else if (target.type == "raw") {
                 const result = target.segments.map(v => v.indent ? color(v.text, v.color).replace(/\n/g, "\n" + "  ".repeat(indent)) : color(v.text, v.color)).join("")
                 return {
-                    result, multiline: result.includes("\n")
+                    result, multiline: result.includes("\n"),
                 }
             }
 
@@ -252,7 +252,7 @@ export namespace DescriptionFormatter {
         const visitKey = (target: ObjectDescription.AnyDescription, indent: number) => {
             if (target.type == "primitive" && typeof target.value == "string" && !target.value.match(/[^\w$]/g)) return {
                 result: target.value,
-                multiline: false
+                multiline: false,
             }
 
             return visit(target, indent)
