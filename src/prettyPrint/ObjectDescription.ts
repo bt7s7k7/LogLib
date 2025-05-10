@@ -61,6 +61,13 @@ export namespace ObjectDescription {
         } else if (typeof target == "object") {
             if (target == null) return { type: "null" }
 
+            if (target[RAW_OBJECT]) {
+                return {
+                    type: "raw",
+                    segments: target.segments,
+                }
+            }
+
             if (ctx.seen.has(target)) return { type: "circular", path: ctx.seen.get(target)! }
             ctx.seen.set(target, ctx.path)
 
@@ -140,13 +147,6 @@ export namespace ObjectDescription {
                 return {
                     type: "raw",
                     segments: [{ color: { custom: false, name: "white" }, text: target.stack ?? target.message }],
-                }
-            }
-
-            if (target[RAW_OBJECT]) {
-                return {
-                    type: "raw",
-                    segments: target.segments,
                 }
             }
 
@@ -248,10 +248,12 @@ export namespace ObjectDescription {
 
     export interface RawTextDescription extends DescriptionBase {
         type: "raw",
-        segments: RawSegment[]
+        segments: (RawSegment | AnyDescription)[]
     }
 
-    export type AnyDescription = PrimitiveDescription | NullDescription | UndefinedDescription | SymbolDescription | DateDescription | FunctionDescription | ListDescription | RecordDescription | UnknownDescription | BigintDescription | ShallowDescription | CircularDescription | RawTextDescription | RegExpDescription
+    export type AnyDescription =
+        | PrimitiveDescription | NullDescription | UndefinedDescription | SymbolDescription | DateDescription | FunctionDescription | ListDescription
+        | RecordDescription | UnknownDescription | BigintDescription | ShallowDescription | CircularDescription | RawTextDescription | RegExpDescription
 }
 
 const RAW_OBJECT = Symbol.for("Logger.ObjectDescription.RawObject")
@@ -278,43 +280,58 @@ const ansiColorMap = {
 export namespace LogMarker {
     export const CUSTOM = Symbol.for("Logger.ObjectDescription.Custom")
 
-    export function raw(segments: RawSegment[]): unknown {
+    export function raw(segments: (RawSegment | ObjectDescription.AnyDescription)[]): unknown {
         return {
             [RAW_OBJECT]: true, segments,
         }
     }
 
-    export function rawText(text: string, color: SegmentColor | ColorName = { custom: false, name: "white" }, { indent = false } = {}) {
+    export function textSegment(text: string, color: SegmentColor | ColorName | "ansi" = { custom: false, name: "white" }, { indent = false } = {}) {
+        if (color == "ansi") {
+            text += "\u001b[0m"
+
+            const segments: RawSegment[] = []
+
+            let currStyle: SegmentColor = { custom: true, code: DescriptionFormatter.DEFAULT_COLOR_CODES.white, ansiCode: 37 }
+            let prevPos = 0
+            let pos = 0
+            let i = 0
+            while ((pos = text.indexOf("\u001b[", pos)) != -1) {
+                const segment = text.slice(prevPos, pos)
+                segments.push({ color: currStyle, text: segment, ...(indent ? { indent: true } : undefined) })
+
+                const styleNumberStart = pos + 2
+                pos = text.indexOf("m", pos) + 1
+
+                const ansiCode = text.slice(styleNumberStart, pos - 1)
+                const colorName = ansiColorMap[ansiCode as keyof typeof ansiColorMap] ?? "white"
+
+                currStyle = {
+                    custom: true,
+                    code: DescriptionFormatter.DEFAULT_COLOR_CODES[colorName as keyof typeof DescriptionFormatter.DEFAULT_COLOR_CODES] ?? DescriptionFormatter.DEFAULT_COLOR_CODES.grey,
+                    ansiCode: +ansiCode
+                }
+
+                prevPos = pos
+                i++
+                if (i > 1000) throw new Error("Infinite loop reached")
+            }
+
+            return segments
+        }
+
         if (typeof color == "string") color = { custom: false, name: color }
 
-        return raw([{ text, color, ...(indent ? { indent: true } : undefined) }])
+        return [
+            { text, color, ...(indent ? { indent: true } : undefined) }
+        ]
+    }
+
+    export function rawText(...args: Parameters<typeof textSegment>) {
+        return raw(textSegment(...args))
     }
 
     export function ansiText(text: string) {
-        text += "\u001b[0m"
-
-        const segments: RawSegment[] = []
-
-        let currStyle: SegmentColor = { custom: true, code: DescriptionFormatter.DEFAULT_COLOR_CODES.white, ansiCode: 37 }
-        let prevPos = 0
-        let pos = 0
-        let i = 0
-        while ((pos = text.indexOf("\u001b[", pos)) != -1) {
-            const segment = text.slice(prevPos, pos)
-            segments.push({ color: currStyle, text: segment })
-
-            const styleNumberStart = pos + 2
-            pos = text.indexOf("m", pos) + 1
-
-            const ansiCode = text.slice(styleNumberStart, pos - 1)
-            const colorName = ansiColorMap[ansiCode as keyof typeof ansiColorMap] ?? "white"
-            currStyle = { custom: true, code: DescriptionFormatter.DEFAULT_COLOR_CODES[colorName as keyof typeof DescriptionFormatter.DEFAULT_COLOR_CODES] ?? DescriptionFormatter.DEFAULT_COLOR_CODES.grey, ansiCode: +ansiCode }
-
-            prevPos = pos
-            i++
-            if (i > 1000) throw new Error("Infinite loop reached")
-        }
-
-        return raw(segments)
+        return raw(textSegment(text, "ansi"))
     }
 }

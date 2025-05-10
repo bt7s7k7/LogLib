@@ -240,7 +240,16 @@ export namespace DescriptionFormatter {
                     multiline: false,
                 }
             } else if (target.type == "raw") {
-                const result = target.segments.map(v => v.indent ? color(v.text, v.color).replace(/\n/g, "\n" + "  ".repeat(indent)) : color(v.text, v.color)).join("")
+                const result = target.segments.map(segment => "color" in segment ? (
+                    segment.indent ? (
+                        color(segment.text, segment.color).replace(/\n/g, "\n" + "  ".repeat(indent))
+                    ) : (
+                        color(segment.text, segment.color)
+                    )
+                ) : (
+                    visit(segment, indent).result
+                )).join("")
+
                 return {
                     result, multiline: result.includes("\n"),
                 }
