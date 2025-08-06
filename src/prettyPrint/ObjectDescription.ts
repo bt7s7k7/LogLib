@@ -152,6 +152,11 @@ export namespace ObjectDescription {
 
             let name: string | null = target.constructor?.name
             if (name == "Object") name = null
+
+            if (target.constructor && LogMarker.CUSTOM_NAME in target.constructor) {
+                name = target.constructor[LogMarker.CUSTOM_NAME]
+            }
+
             const items: RecordDescription["items"] = []
 
             for (const [key, value] of Object.entries(target)) {
@@ -279,6 +284,7 @@ const ansiColorMap = {
 
 export namespace LogMarker {
     export const CUSTOM = Symbol.for("Logger.ObjectDescription.Custom")
+    export const CUSTOM_NAME = Symbol.for("Logger.ObjectDescription.CustomName")
 
     export function raw(segments: (RawSegment | ObjectDescription.AnyDescription)[]): unknown {
         return {
