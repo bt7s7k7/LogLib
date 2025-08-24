@@ -71,6 +71,13 @@ export namespace ObjectDescription {
             if (ctx.seen.has(target)) return { type: "circular", path: ctx.seen.get(target)! }
             ctx.seen.set(target, ctx.path)
 
+            let name: string | null = target.constructor?.name
+            if (name == "Object") name = null
+
+            if (target.constructor && LogMarker.CUSTOM_NAME in target.constructor) {
+                name = target.constructor[LogMarker.CUSTOM_NAME]
+            }
+
             const isTypedArray = ArrayBuffer.isView(target) && !(target instanceof DataView)
             if (target instanceof Array || isTypedArray) {
                 let array = target as any[]
@@ -87,7 +94,7 @@ export namespace ObjectDescription {
                 return {
                     type: "list",
                     subtype: "array",
-                    name: target.constructor.name,
+                    name: name,
                     elements: array.map((v, i) => inspectObject(v, ctx.descent(["elements", i.toString()]))),
                 }
             }
@@ -96,7 +103,7 @@ export namespace ObjectDescription {
                 return {
                     type: "list",
                     subtype: "set",
-                    name: target.constructor.name,
+                    name: name,
                     elements: [...target.entries()].map(([key, value], i) => inspectObject(value, ctx.descent(["elements", i.toString()]))),
                 }
             }
@@ -110,7 +117,7 @@ export namespace ObjectDescription {
                 return {
                     type: "record",
                     subtype: "map",
-                    name: target.constructor.name,
+                    name: name,
                     items: [...target].map(asKeyValuePairList),
                 }
             }
@@ -132,7 +139,7 @@ export namespace ObjectDescription {
             if (target instanceof WeakMap || target instanceof WeakSet || target instanceof Promise) {
                 return {
                     type: "shallow",
-                    name: target.constructor.name,
+                    name: name!,
                 }
             }
 
@@ -148,13 +155,6 @@ export namespace ObjectDescription {
                     type: "raw",
                     segments: [{ color: { custom: false, name: "white" }, text: target.stack ?? target.message }],
                 }
-            }
-
-            let name: string | null = target.constructor?.name
-            if (name == "Object") name = null
-
-            if (target.constructor && LogMarker.CUSTOM_NAME in target.constructor) {
-                name = target.constructor[LogMarker.CUSTOM_NAME]
             }
 
             const items: RecordDescription["items"] = []
